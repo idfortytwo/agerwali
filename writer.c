@@ -19,17 +19,17 @@ int main() {
     int shmID, semID;
     int *shmAddr;
 	int writeIndex, value;
-    int i_writeIndex = MAX + 2;
+    int i_writeIndex = MAX + 1;
 
     semArray A, B, empty;
     empty.n = 0;
 
-    printf("P] producent start\n");
+    printf("W] writer start\n");
 
 
     //uzyskanie dosepu do pamieci dzielonej
 	shmKey = get_ftok_key('G');
-    shmID = get_shm_id(shmKey, (MAX + 3) * sizeof(int), 0666);
+    shmID = get_shm_id(shmKey, (MAX + 2) * sizeof(int), 0666);
 
     //przylaczenie pamieci dzielonej
     shmAddr = shmat(shmID, NULL, 0);
@@ -37,10 +37,10 @@ int main() {
     //uzyskanie dosepu do semaforow
     semKey = get_ftok_key('M');
     semID = aloc_sem(semKey, 3, IPC_CREAT | 0666);
-//    semID = 5;
+
+    //przylaczenie "list" semaforow do glownego
     A.semID = semID;
     B.semID = semID;
-
 
 
     //pamiec krytyczna - POCZATEK
@@ -49,11 +49,10 @@ int main() {
     VE(A);
 
     A.sems[0] = MUTEX;
-//    B.n = 1;
     array(&B, 1);
-//    B.sems = (int*) malloc(sizeof(int) * 1);
     B.sems[0] = READ;
     PE(A, B);
+
     sleep(1);
 
 
@@ -63,7 +62,7 @@ int main() {
     //wpisywanie
     value = getpid();
     *(shmAddr + writeIndex * sizeof(int)) = value;
-    printf("P] +value[%d]: %d\n", writeIndex, value);
+    printf("W] +value[%d]: %d\n", writeIndex, value);
 
     //modyfikacja indeksu do wpisywania
     writeIndex++;
@@ -83,7 +82,7 @@ int main() {
     //odlaczanie pamieci dzielonej
     shmdt(shmAddr);
 
-//    printf("P] producent koniec\n");
+    printf("W] writer end\n");
     return 0;
 }
 

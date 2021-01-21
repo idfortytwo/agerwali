@@ -24,12 +24,12 @@ int main() {
     semArray A, B, empty;
     empty.n = 0;
 
-    printf("K] konsument start\n");
+    printf("R] reader start\n");
 
 
     //uzyskanie dosepu do pamieci dzielonej
     shmKey = get_ftok_key('G');
-    shmID = get_shm_id(shmKey, (MAX + 3) * sizeof(int), 0666);
+    shmID = get_shm_id(shmKey, (MAX + 2) * sizeof(int), 0666);
 
     //przylaczenie pamieci dzielonej
     shmAddr = shmat(shmID, NULL, 0);
@@ -37,6 +37,8 @@ int main() {
     //uzyskanie dosepu do semaforow
     semKey = get_ftok_key('M');
     semID = aloc_sem(semKey, 3, IPC_CREAT | 0666);
+
+    //przylaczenie "list" semaforow do glownego
     A.semID = semID;
     B.semID = semID;
 
@@ -59,7 +61,7 @@ int main() {
     //czytanie
     readIndex = *(shmAddr + i_readIndex * sizeof(int));
     value = *(shmAddr + readIndex * sizeof(int));
-    printf("K] -value[%d]: %d\n", readIndex, value);
+    printf("R] -value[%d]: %d\n", readIndex, value);
 
     //modyfikacja indeksu do odczytu
     readIndex++;
@@ -74,7 +76,7 @@ int main() {
     //odlaczanie pamieci dzielonej
     shmdt(shmAddr);
 
-    printf("K] konsument koniec\n");
+    printf("R] reader koniec\n");
     return 0;
 }
 

@@ -36,8 +36,6 @@ int main() {
 
 
     //pamiec krytyczna - POCZATEK
-    wait_sem(semID, 1, 0);
-
     wait_sem(semID, MUTEX, 0);
 
     readCount = *(shmAddr + i_readCount * sizeof(int));
@@ -66,10 +64,7 @@ int main() {
     if (readCount == 0)
         signal_sem(semID, WRITE);
     signal_sem(semID, MUTEX);
-
-
     //pamiec krytyczna - KONIEC
-    signal_sem(semID, 1);
 
 
 

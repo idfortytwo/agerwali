@@ -12,38 +12,18 @@
 #define P 50    //liczba procesow prod i kons
 #define MAX 10  //rozmiar buforu
 #define MAX2 12 //dwa pola na indeksy zapis/odczyt
-#define PUSTY 1 //typ komunikatu
-#define PELNY 2 //typ komunikatu
 
-//struktura komunikatu
-struct bufor {
-    long mtype;
-    int mvalue;
-};
 
 int kek() {
-    key_t msg_key, shm_key, sem_key;
-    int msg_id, shm_id, sem_id;
-    struct bufor komunikat;
-    printf("M] main start\n");
+    key_t shm_key, sem_key;
+    int shm_id, sem_id;
 
-    //tworzymy kolejke komunikatow
-    msg_key = get_ftok_key('R');
-    msg_id = get_msg_id(msg_key, IPC_CREAT | IPC_EXCL | 0666);
+    printf("M] main start\n");
 
     //tworzymy pamiec dzielona
     shm_key = get_ftok_key('G');
-	shm_id = get_shm_id(shm_key, MAX2 * sizeof(int), IPC_CREAT | IPC_EXCL | 0666); //tworzenie pam. dz.
+	shm_id = get_shm_id(shm_key, MAX2 * sizeof(int), IPC_CREAT | IPC_EXCL | 0666);
 
-	//wysylamy 10 komunikatow pustych zeby uruchomic producentow
-    komunikat.mtype = PUSTY;
-    for (int i = 0; i < MAX; i++) {
-        if (msgsnd(msg_id, &komunikat, sizeof(komunikat.mvalue), 0) == -1) {
-            printf("M] blad wyslania kom. pustego\n");
-            exit(1);
-        }
-        printf("M] wyslany pusty komunikat %d\n", i);
-    }
 
     //tworzymy i inicjujemy semafory dla pamieci krytycznej
     sem_key = get_ftok_key('M');
@@ -78,7 +58,6 @@ int kek() {
 
     // zwalnianie zasobow
     free_sem(sem_id, 2);
-    msgctl(msg_id, IPC_RMID, NULL);
 	shmctl(shm_id, IPC_RMID, NULL);
 
     printf("M] main koniec\n");
@@ -86,8 +65,5 @@ int kek() {
 }
 
 int main() {
-    key_t sem_key;
-    int msg_id, shm_id, sem_id;
-    sem_key = get_ftok_key('M');
-    sem_id = aloc_sem(sem_key, 2, IPC_CREAT | IPC_EXCL | 0666);
+    kek();
 }

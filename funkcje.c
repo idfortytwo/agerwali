@@ -88,11 +88,42 @@ void signal_sem(int semID, int number) {
 
 
 int PE(semArray A, semArray B) {
-//    for (int i = 0; i < A.n; i++) {
-//
-//    }
+    struct sembuf operacje[2];
+
+    int i = 0;
+    for (; i < A.n; i++) {
+        operacje[i].sem_num = A.sems[i];
+        operacje[i].sem_op = -1;
+        operacje[i].sem_flg = SEM_UNDO;
+    }
+    for (int j = 0; j < B.n; j++) {
+        operacje[i].sem_num = B.sems[j];
+        operacje[i].sem_op = -1;
+        operacje[i].sem_flg = SEM_UNDO;
+        i++;
+    }
+
+    if (semop(A.semID, operacje, A.n + B.n) == -1) {
+        perror("Blad semop (PE):");
+        return -1;
+    }
+
+    return 1;
 };
 
-void VE(semArray A) {
-//    for (int k = 0; k <= )
+int VE(semArray A) {
+    struct sembuf operacje[2];
+
+    for (int i = 0; i < A.n; i++) {
+        operacje[i].sem_num = A.sems[i];
+        operacje[i].sem_op = 1;
+        operacje[i].sem_flg = SEM_UNDO;
+    }
+
+    if (semop(A.semID, operacje, A.n) == -1) {
+        perror("Blad semop (VE):");
+        return -1;
+    }
+
+    return 1;
 };

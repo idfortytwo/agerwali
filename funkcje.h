@@ -8,6 +8,7 @@
 typedef struct semArray {
     int semID;
     int n;
+    int *sems;
 } semArray;
 
 int get_ftok_key(char key);
@@ -20,4 +21,4 @@ int free_sem(int semID, int number);
 int wait_sem(int semID, int number, int flags);
 void signal_sem(int semID, int number);
 int PE(semArray A, semArray B);
-void VE(semArray A);
+int VE(semArray A);

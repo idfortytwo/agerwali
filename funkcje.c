@@ -127,3 +127,9 @@ int VE(semArray A) {
 
     return 1;
 };
+
+void array(semArray *array, int n) {
+    int* gen = (int *) malloc(n * sizeof(int));
+    array->n = n;
+    array->sems = gen;
+};

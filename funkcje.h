@@ -22,3 +22,5 @@ int wait_sem(int semID, int number, int flags);
 void signal_sem(int semID, int number);
 int PE(semArray A, semArray B);
 int VE(semArray A);
+
+void array(semArray *array, int n);

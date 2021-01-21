@@ -9,17 +9,17 @@
 #include "funkcje.h"
 
 
-#define P 5    //liczba procesow prod i kons
+#define P 4    //liczba procesow prod i kons
 #define MAX 10  //rozmiar buforu
 #define MUTEX 0
 #define WRITE 1
+#define READ 2
 
 
 key_t shmKey, semKey;
 int shmID, semID;
 
 void handler(int s) {
-    printf("Caught signal %d\n",s);
     if (s == 2) {
         free_sem(semID, 2);
         shmctl(shmID, IPC_RMID, NULL);
@@ -45,9 +45,10 @@ int kek() {
 
     //tworzymy i inicjujemy semafory dla pamieci krytycznej
     semKey = get_ftok_key('M');
-    semID = aloc_sem(semKey, 2, IPC_CREAT | IPC_EXCL | 0666);
+    semID = aloc_sem(semKey, 3, IPC_CREAT | IPC_EXCL | 0666);
     init_sem(semID, MUTEX, 1);
-    init_sem(semID, WRITE, 1);
+    init_sem(semID, WRITE, 0);
+    init_sem(semID, READ, 0);
 
     //uruchamiamy producentow
     for (int i = 0; i < P; i++) {

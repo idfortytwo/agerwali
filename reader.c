@@ -3,6 +3,7 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <sys/shm.h>
+#include <unistd.h>
 
 #include "funkcje.h"
 
@@ -10,14 +11,18 @@
 #define MAX 10
 #define MUTEX 0
 #define WRITE 1
+#define READ 2
 
 
 int main() {
     key_t shmKey, semKey;
     int shmID, semID;
     int *shmAddr;
-    int readIndex, value, readCount;
-    int i_readIndex = MAX, i_readCount = MAX + 1;
+    int readIndex, value;
+    int i_readIndex = MAX;
+
+    semArray A, B, empty;
+    empty.n = 0;
 
     printf("K] konsument start\n");
 
@@ -31,24 +36,28 @@ int main() {
 
     //uzyskanie dosepu do semaforow
     semKey = get_ftok_key('M');
-    semID = aloc_sem(semKey, 2, IPC_CREAT | 0666);
+    semID = aloc_sem(semKey, 3, IPC_CREAT | 0666);
+    A.semID = semID;
+    B.semID = semID;
 
+    array(&A, 1);
+    A.sems[0] = MUTEX;
+    array(&B, 1);
+    B.sems[0] = WRITE;
+    PE(A, B);
 
+    array(&A, 2);
+    A.sems[0] = MUTEX;
+    A.sems[1] = READ;
+    VE(A);
 
     //pamiec krytyczna - POCZATEK
-    wait_sem(semID, MUTEX, 0);
-
-    readCount = *(shmAddr + i_readCount * sizeof(int));
-    readCount++;
-    if (readCount == 1)
-        wait_sem(semID, WRITE, 0);
-
-    signal_sem(semID, MUTEX);
-
+    array(&A, 1);
+    A.sems[0] = MUTEX;
+    PE(A, empty);
 
     //czytanie
     readIndex = *(shmAddr + i_readIndex * sizeof(int));
-
     value = *(shmAddr + readIndex * sizeof(int));
     printf("K] -value[%d]: %d\n", readIndex, value);
 
@@ -56,22 +65,16 @@ int main() {
     readIndex++;
     if (readIndex == MAX)
         readIndex = 0;
-    *(shmAddr + 11 * sizeof(int)) = readIndex;
+    *(shmAddr + i_readIndex * sizeof(int)) = readIndex;
 
-
-    wait_sem(semID, MUTEX, 0);
-    readCount--;
-    if (readCount == 0)
-        signal_sem(semID, WRITE);
-    signal_sem(semID, MUTEX);
+    VE(A);
     //pamiec krytyczna - KONIEC
-
 
 
     //odlaczanie pamieci dzielonej
     shmdt(shmAddr);
 
-//    printf("K] konsument koniec\n");
+    printf("K] konsument koniec\n");
     return 0;
 }
 

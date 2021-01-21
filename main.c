@@ -16,21 +16,21 @@
 
 
 int kek() {
-    key_t shm_key, sem_key;
-    int shm_id, sem_id;
+    key_t shmKey, semKey;
+    int shmID, semID;
 
     printf("M] main start\n");
 
     //tworzymy pamiec dzielona
-    shm_key = get_ftok_key('G');
-	shm_id = get_shm_id(shm_key, (MAX + 3) * sizeof(int), IPC_CREAT | IPC_EXCL | 0666);
+    shmKey = get_ftok_key('G');
+    shmID = get_shm_id(shmKey, (MAX + 3) * sizeof(int), IPC_CREAT | IPC_EXCL | 0666);
 
 
     //tworzymy i inicjujemy semafory dla pamieci krytycznej
-    sem_key = get_ftok_key('M');
-    sem_id = aloc_sem(sem_key, 2, IPC_CREAT | IPC_EXCL | 0666);
-    init_sem(sem_id, MUTEX, 1);
-    init_sem(sem_id, WRITE, 1);
+    semKey = get_ftok_key('M');
+    semID = aloc_sem(semKey, 2, IPC_CREAT | IPC_EXCL | 0666);
+    init_sem(semID, MUTEX, 1);
+    init_sem(semID, WRITE, 1);
 
     //uruchamiamy producentow
     for (int i = 0; i < P; i++) {
@@ -58,8 +58,8 @@ int kek() {
         wait(NULL);
 
     // zwalnianie zasobow
-    free_sem(sem_id, 2);
-	shmctl(shm_id, IPC_RMID, NULL);
+    free_sem(semID, 2);
+	shmctl(shmID, IPC_RMID, NULL);
 
     printf("M] main koniec\n");
     return 0;

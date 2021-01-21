@@ -9,17 +9,34 @@
 #include "funkcje.h"
 
 
-#define P 50    //liczba procesow prod i kons
+#define P 5    //liczba procesow prod i kons
 #define MAX 10  //rozmiar buforu
 #define MUTEX 0
 #define WRITE 1
 
 
+key_t shmKey, semKey;
+int shmID, semID;
+
+void handler(int s) {
+    printf("Caught signal %d\n",s);
+    if (s == 2) {
+        free_sem(semID, 2);
+        shmctl(shmID, IPC_RMID, NULL);
+    }
+    exit(1);
+
+}
+
 int kek() {
-    key_t shmKey, semKey;
-    int shmID, semID;
 
     printf("M] main start\n");
+
+    struct sigaction sigIntHandler;
+    sigIntHandler.sa_handler = handler;
+    sigemptyset(&sigIntHandler.sa_mask);
+    sigIntHandler.sa_flags = 0;
+    sigaction(SIGINT, &sigIntHandler, NULL);
 
     //tworzymy pamiec dzielona
     shmKey = get_ftok_key('G');
@@ -39,7 +56,7 @@ int kek() {
                 perror("M] Blad fork (mainprog)");
                 exit(2);
             case 0:
-                execl("./prod", "prod", NULL);
+                execl("./writer", "writer", NULL);
         }
     }
 
@@ -50,7 +67,7 @@ int kek() {
                 printf("M] Blad fork (mainprog)\n");
                 exit(2);
             case 0:
-                execl("./kons", "kons", NULL);
+                execl("./reader", "reader", NULL);
         }
     }
 

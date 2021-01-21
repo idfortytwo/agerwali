@@ -11,7 +11,8 @@
 
 #define P 50    //liczba procesow prod i kons
 #define MAX 10  //rozmiar buforu
-#define MAX2 12 //dwa pola na indeksy zapis/odczyt
+#define MUTEX 0
+#define WRITE 1
 
 
 int kek() {
@@ -22,14 +23,14 @@ int kek() {
 
     //tworzymy pamiec dzielona
     shm_key = get_ftok_key('G');
-	shm_id = get_shm_id(shm_key, MAX2 * sizeof(int), IPC_CREAT | IPC_EXCL | 0666);
+	shm_id = get_shm_id(shm_key, (MAX + 3) * sizeof(int), IPC_CREAT | IPC_EXCL | 0666);
 
 
     //tworzymy i inicjujemy semafory dla pamieci krytycznej
     sem_key = get_ftok_key('M');
     sem_id = aloc_sem(sem_key, 2, IPC_CREAT | IPC_EXCL | 0666);
-    for (int sem_num = 0; sem_num < 2; sem_num++)
-        init_sem(sem_id, sem_num, 1);
+    init_sem(sem_id, MUTEX, 1);
+    init_sem(sem_id, WRITE, 1);
 
     //uruchamiamy producentow
     for (int i = 0; i < P; i++) {

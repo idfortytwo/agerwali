@@ -9,7 +9,9 @@
 
 
 #define MAX 10
-#define MAX2 12
+#define MUTEX 0
+#define WRITE 1
+
 
 int main() {
     key_t shm_key, sem_key;
@@ -22,7 +24,7 @@ int main() {
 
     //uzyskanie dosepu do pamieci dzielonej
 	shm_key = get_ftok_key('G');
-    shm_id = get_shm_id(shm_key, MAX2 * sizeof(int), 0666);
+    shm_id = get_shm_id(shm_key, (MAX + 3) * sizeof(int), 0666);
 
     //przylaczenie pamieci dzielonej
     shm_addr = shmat(shm_id, NULL, 0);

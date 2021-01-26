@@ -25,7 +25,7 @@ int main() {
 
     //uzyskanie dosepu do pamieci dzielonej
     shmKey = get_ftok_key('G');
-    shmID = get_shm_id(shmKey, (MAX + 1) * sizeof(int), 0666);
+    shmID = get_shm_id(shmKey, (MAX + 2) * sizeof(int), 0666);
 
     //przylaczenie pamieci dzielonej
     shared = shmat(shmID, NULL, 0);

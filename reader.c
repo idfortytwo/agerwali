@@ -3,7 +3,6 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <sys/shm.h>
-#include <unistd.h>
 
 #include "funkcje.h"
 

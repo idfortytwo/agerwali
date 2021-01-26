@@ -18,18 +18,17 @@ int main() {
     key_t shmKey, semKey;
     int shmID, semID;
     int *shmAddr;
-	int index, value;
-    int indexPos = MAX;
+    int writeIndex, value;
+    int i_writeIndex = MAX;
 
-    semArray A, B, empty;
-    empty.n = 0;
+    int A[1], B[1];
 
     printf("W] writer start\n");
 
 
     //uzyskanie dosepu do pamieci dzielonej
-	shmKey = get_ftok_key('G');
-    shmID = get_shm_id(shmKey, (MAX + 1) * sizeof(int), 0666);
+    shmKey = get_ftok_key('G');
+    shmID = get_shm_id(shmKey, (MAX + 2) * sizeof(int), 0666);
 
     //przylaczenie pamieci dzielonej
     shmAddr = shmat(shmID, NULL, 0);
@@ -38,43 +37,28 @@ int main() {
     semKey = get_ftok_key('M');
     semID = aloc_sem(semKey, 3, IPC_CREAT | 0666);
 
-    //przylaczenie "list" semaforow do glownego
-    A.semID = semID;
-    B.semID = semID;
-
 
     //pamiec krytyczna - POCZATEK
-    array(&A, 1);
-    A.sems[0] = WRITE;
-    VE(A);
+    A[0] = WRITE;
+    VE(semID, A, 1);
 
-    array(&A, 1);
-    A.sems[0] = MUTEX;
-    array(&B, 1);
-    B.sems[0] = READ;
-    PE(A, B);
-
-    usleep(100000);
-
-
-    //odczyt indeksu do wpisywania
-    index = *(shmAddr + indexPos * sizeof(int));
+    A[0] = MUTEX;
+    B[0] = READ;
+    PE(semID, A, 1, B, 1);
 
     //wpisywanie
-    value = getpid() % (123 - 97) + 97;
-    *(shmAddr + index * sizeof(int)) = value;
-    printf("W] +value[%d]: %c\n", index, value);
+    value = getpid();
+    writeIndex = *(shmAddr + i_writeIndex * sizeof(int));
+    *(shmAddr + writeIndex * sizeof(int)) = value;
+    printf("W] +value[%d]: %d\n", writeIndex, value);
 
     //modyfikacja indeksu do wpisywania
-    index++;
-    if (index == MAX)
-        index = 0;
-    *(shmAddr + indexPos * sizeof(int)) = index;
+    *(shmAddr + i_writeIndex * sizeof(int)) = (writeIndex + 1) % MAX;
 
-    VE(A);
+    VE(semID, A, 1);
 
-    A.sems[0] = WRITE;
-    PE(A, empty);
+    A[0] = WRITE;
+    PE(semID, A, 1, B, 0);
     //pamiec krytyczna - KONIEC
 
 
@@ -85,4 +69,3 @@ int main() {
     printf("W] writer end\n");
     return 0;
 }
-

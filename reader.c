@@ -3,8 +3,10 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <sys/shm.h>
+#include <unistd.h>
 
 #include "funkcje.h"
+
 
 #define MAX 10
 #define MUTEX 0
@@ -16,18 +18,17 @@ int main() {
     key_t shmKey, semKey;
     int shmID, semID;
     int *shmAddr;
-    int wordLength, value;
-    int indexPos = MAX;
+    int readIndex, value;
+    int i_readIndex = MAX;
 
-    semArray A, B, empty;
-    empty.n = 0;
+    int A[2], B[1];
 
     printf("R] reader start\n");
 
 
     //uzyskanie dosepu do pamieci dzielonej
     shmKey = get_ftok_key('G');
-    shmID = get_shm_id(shmKey, (MAX + 1) * sizeof(int), 0666);
+    shmID = get_shm_id(shmKey, (MAX + 2) * sizeof(int), 0666);
 
     //przylaczenie pamieci dzielonej
     shmAddr = shmat(shmID, NULL, 0);
@@ -36,37 +37,24 @@ int main() {
     semKey = get_ftok_key('M');
     semID = aloc_sem(semKey, 3, IPC_CREAT | 0666);
 
-    //przylaczenie "list" semaforow do glownego
-    A.semID = semID;
-    B.semID = semID;
+    A[0] = MUTEX;
+    B[0] = WRITE;
+    PE(semID, A, 1, B, 1);
 
-    array(&A, 1);
-    A.sems[0] = MUTEX;
-    array(&B, 1);
-    B.sems[0] = WRITE;
-    PE(A, B);
-
-    array(&A, 2);
-    A.sems[0] = MUTEX;
-    A.sems[1] = READ;
-    VE(A);
-
-
-    array(&A, 1);
-    A.sems[0] = MUTEX;
-    PE(A, empty);
+    A[0] = MUTEX;
+    A[1] = READ;
+    VE(semID, A, 2);
 
     //czytanie
-    wordLength = *(shmAddr + indexPos * sizeof(int));
-
-    printf("R] -values[%d-%d]: ", 0, wordLength - 1);
-    for (int index = 0; index < wordLength; index++) {
-        value = *(shmAddr + index * sizeof(int));
-        printf("%c", value);
-    }
+    readIndex = *(shmAddr + i_readIndex * sizeof(int));
+    printf("R] -values[0-%d]: ", readIndex);
+    for (int i = 0; i < readIndex; i++)
+        printf("%d ", *(shmAddr + i * sizeof(int)));
     printf("\n");
 
-    VE(A);
+
+    A[0] = READ;
+    PE(semID, A, 1, B, 0);
 
 
     //odlaczanie pamieci dzielonej
@@ -75,4 +63,3 @@ int main() {
     printf("R] reader koniec\n");
     return 0;
 }
-

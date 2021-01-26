@@ -87,49 +87,46 @@ void signal_sem(int semID, int number) {
 
 
 
-int PE(semArray A, semArray B) {
+int PE(int semID, int* A, int lenA, int* B, int lenB) {
     struct sembuf operacje[2];
 
     int i = 0;
-    for (; i < A.n; i++) {
-        operacje[i].sem_num = A.sems[i];
+    for (; i < lenA; i++) {
+//        printf("PE A sem%d -1\n", i);
+        operacje[i].sem_num = A[i];
         operacje[i].sem_op = -1;
         operacje[i].sem_flg = SEM_UNDO;
     }
-    for (int j = 0; j < B.n; j++) {
-        operacje[i].sem_num = B.sems[j];
-        operacje[i].sem_op = -1;
+    for (int j = 0; j < lenA; j++) {
+//        printf("PE B sem%d 0\n", j);
+        operacje[i].sem_num = B[j];
+        operacje[i].sem_op = 0;
         operacje[i].sem_flg = SEM_UNDO;
         i++;
     }
 
-    if (semop(A.semID, operacje, A.n + B.n) == -1) {
+    if (semop(semID, operacje, lenA + lenB) == -1) {
         perror("Blad semop (PE):");
         return -1;
     }
 
     return 1;
-};
+}
 
-int VE(semArray A) {
+int VE(int semID, int* A, int lenA) {
     struct sembuf operacje[2];
 
-    for (int i = 0; i < A.n; i++) {
-        operacje[i].sem_num = A.sems[i];
+    for (int i = 0; i < lenA; i++) {
+//        printf("VE A sem%d +1\n", i);
+        operacje[i].sem_num = A[i];
         operacje[i].sem_op = 1;
         operacje[i].sem_flg = SEM_UNDO;
     }
 
-    if (semop(A.semID, operacje, A.n) == -1) {
+    if (semop(semID, operacje, lenA) == -1) {
         perror("Blad semop (VE):");
         return -1;
     }
 
     return 1;
-};
-
-void array(semArray *array, int n) {
-    int* gen = (int *) malloc(n * sizeof(int));
-    array->n = n;
-    array->sems = gen;
-};
+}

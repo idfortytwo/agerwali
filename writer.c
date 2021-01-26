@@ -35,13 +35,13 @@ int main() {
     semID = aloc_sem(semKey, 3, IPC_CREAT | 0666);
 
 
-    //pamiec krytyczna - POCZATEK
     A[0] = WRITE;
     VE(semID, A, 1);
 
     A[0] = MUTEX;
     B[0] = READ;
     PE(semID, A, 1, B, 1);
+
 
     //wpisywanie
     value = getpid();
@@ -51,13 +51,10 @@ int main() {
 
     //modyfikacja indeksu do wpisywania
     *(shared + MAX * sizeof(int)) = (writeIndex + 1) % MAX;
-
     VE(semID, A, 1);
 
     A[0] = WRITE;
     PE(semID, A, 1, B, 0);
-    //pamiec krytyczna - KONIEC
-
 
 
     //odlaczanie pamieci dzielonej

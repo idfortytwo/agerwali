@@ -34,6 +34,7 @@ int main() {
     semKey = get_ftok_key('M');
     semID = aloc_sem(semKey, 3, IPC_CREAT | 0666);
 
+
     A[0] = MUTEX;
     B[0] = WRITE;
     PE(semID, A, 1, B, 1);
@@ -42,15 +43,16 @@ int main() {
     A[1] = READ;
     VE(semID, A, 2);
 
+
     //czytanie
     A[0] = MUTEX;
     PE(semID, A, 1, B, 0);
-    readIndex = *(shared + (MAX+1) * sizeof(int));
+    readIndex = *(shared + (MAX + 1) * sizeof(int));
     value = *(shared + readIndex * sizeof(int));
     printf("R] odczyt[%d]: %d\n", readIndex, value);
 
     //modyfikacja indeksu do odczytu
-    *(shared + (MAX+1) * sizeof(int)) = (readIndex + 1) % MAX;
+    *(shared + (MAX + 1) * sizeof(int)) = (readIndex + 1) % MAX;
     VE(semID, A, 1);
 
     A[0] = READ;

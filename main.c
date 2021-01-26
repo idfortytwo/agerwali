@@ -9,7 +9,7 @@
 #include "funkcje.h"
 
 
-#define P 8
+#define P 15
 #define MAX 10
 #define MUTEX 0
 #define WRITE 1

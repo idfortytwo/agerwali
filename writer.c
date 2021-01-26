@@ -17,21 +17,18 @@
 int main() {
     key_t shmKey, semKey;
     int shmID, semID;
-    int *shmAddr;
+    int *shared;
     int writeIndex, value;
-    int i_writeIndex = MAX;
 
     int A[1], B[1];
-
-//    printf("W] writer start\n");
 
 
     //uzyskanie dosepu do pamieci dzielonej
     shmKey = get_ftok_key('G');
-    shmID = get_shm_id(shmKey, (MAX + 2) * sizeof(int), 0666);
+    shmID = get_shm_id(shmKey, (MAX + 1) * sizeof(int), 0666);
 
     //przylaczenie pamieci dzielonej
-    shmAddr = shmat(shmID, NULL, 0);
+    shared = shmat(shmID, NULL, 0);
 
     //uzyskanie dosepu do semaforow
     semKey = get_ftok_key('M');
@@ -48,12 +45,12 @@ int main() {
 
     //wpisywanie
     value = getpid();
-    writeIndex = *(shmAddr + i_writeIndex * sizeof(int));
-    *(shmAddr + writeIndex * sizeof(int)) = value;
-    printf("W] +value[%d]: %d\n", writeIndex, value);
+    writeIndex = *(shared + MAX * sizeof(int));
+    *(shared + writeIndex * sizeof(int)) = value;
+    printf("W] pisanie[%d]: %d\n", writeIndex, value);
 
     //modyfikacja indeksu do wpisywania
-    *(shmAddr + i_writeIndex * sizeof(int)) = (writeIndex + 1) % MAX;
+    *(shared + MAX * sizeof(int)) = (writeIndex + 1) % MAX;
 
     VE(semID, A, 1);
 
@@ -64,8 +61,7 @@ int main() {
 
 
     //odlaczanie pamieci dzielonej
-    shmdt(shmAddr);
+    shmdt(shared);
 
-//    printf("W] writer end\n");
     return 0;
 }

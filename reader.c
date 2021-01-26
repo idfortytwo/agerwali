@@ -17,21 +17,18 @@
 int main() {
     key_t shmKey, semKey;
     int shmID, semID;
-    int *shmAddr;
+    int *shared;
     int readIndex, value;
-    int i_readIndex = MAX;
 
     int A[2], B[1];
-
-//    printf("R] reader start\n");
 
 
     //uzyskanie dosepu do pamieci dzielonej
     shmKey = get_ftok_key('G');
-    shmID = get_shm_id(shmKey, (MAX + 2) * sizeof(int), 0666);
+    shmID = get_shm_id(shmKey, (MAX + 1) * sizeof(int), 0666);
 
     //przylaczenie pamieci dzielonej
-    shmAddr = shmat(shmID, NULL, 0);
+    shared = shmat(shmID, NULL, 0);
 
     //uzyskanie dosepu do semaforow
     semKey = get_ftok_key('M');
@@ -46,20 +43,22 @@ int main() {
     VE(semID, A, 2);
 
     //czytanie
-    readIndex = *(shmAddr + i_readIndex * sizeof(int));
-    printf("R] -values[0-%d]: ", readIndex);
-    for (int i = 0; i < readIndex; i++)
-        printf("%d ", *(shmAddr + i * sizeof(int)));
-    printf("\n");
+    A[0] = MUTEX;
+    PE(semID, A, 1, B, 0);
+    readIndex = *(shared + (MAX+1) * sizeof(int));
+    value = *(shared + readIndex * sizeof(int));
+    printf("R] odczyt[%d]: %d\n", readIndex, value);
 
+    //modyfikacja indeksu do odczytu
+    *(shared + (MAX+1) * sizeof(int)) = (readIndex + 1) % MAX;
+    VE(semID, A, 1);
 
     A[0] = READ;
     PE(semID, A, 1, B, 0);
 
 
     //odlaczanie pamieci dzielonej
-    shmdt(shmAddr);
+    shmdt(shared);
 
-//    printf("R] reader koniec\n");
     return 0;
 }

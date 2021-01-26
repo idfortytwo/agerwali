@@ -3,11 +3,9 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <sys/shm.h>
-#include <unistd.h>
 
 #include "funkcje.h"
 
-#define MAX_WORD_LEN 30
 #define MAX 10
 #define MUTEX 0
 #define WRITE 1
@@ -42,13 +40,13 @@ int main() {
     A.semID = semID;
     B.semID = semID;
 
-    array(&A, 1);  // PE(M;A)
+    array(&A, 1);
     A.sems[0] = MUTEX;
     array(&B, 1);
     B.sems[0] = WRITE;
     PE(A, B);
 
-    array(&A, 2);  // VE(M, R)
+    array(&A, 2);
     A.sems[0] = MUTEX;
     A.sems[1] = READ;
     VE(A);
@@ -57,7 +55,6 @@ int main() {
     array(&A, 1);
     A.sems[0] = MUTEX;
     PE(A, empty);
-    usleep(500000);
 
     //czytanie
     wordLength = *(shmAddr + indexPos * sizeof(int));
@@ -71,9 +68,6 @@ int main() {
 
     VE(A);
 
-//    array(&A, 1);  // PE(R)
-//    A.sems[0] = READ;
-//    PE(A, empty);
 
     //odlaczanie pamieci dzielonej
     shmdt(shmAddr);

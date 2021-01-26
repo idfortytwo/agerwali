@@ -44,12 +44,12 @@ int main() {
 
 
     //pamiec krytyczna - POCZATEK
-    array(&A, 1);  // VE(A)
+    array(&A, 1);
     A.sems[0] = WRITE;
     VE(A);
 
-    array(&A, 1);  // VE(A)
-    A.sems[0] = MUTEX;  // PE(M;R)
+    array(&A, 1);
+    A.sems[0] = MUTEX;
     array(&B, 1);
     B.sems[0] = READ;
     PE(A, B);
@@ -73,7 +73,7 @@ int main() {
 
     VE(A);
 
-    A.sems[0] = WRITE;  // PE(A)
+    A.sems[0] = WRITE;
     PE(A, empty);
     //pamiec krytyczna - KONIEC
 

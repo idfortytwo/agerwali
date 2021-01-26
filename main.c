@@ -9,8 +9,8 @@
 #include "funkcje.h"
 
 
-#define P 8     //liczba procesow
-#define MAX 10  //rozmiar buforu
+#define P 8
+#define MAX 10
 #define MUTEX 0
 #define WRITE 1
 #define READ 2
@@ -25,11 +25,9 @@ void handler(int s) {
         shmctl(shmID, IPC_RMID, NULL);
     }
     exit(1);
-
 }
 
-int run() {
-
+int main() {
     printf("M] main start\n");
 
     struct sigaction sigIntHandler;
@@ -81,8 +79,4 @@ int run() {
 
     printf("M] main koniec\n");
     return 0;
-}
-
-int main() {
-    run();
 }

@@ -7,7 +7,7 @@
 
 #include "funkcje.h"
 
-
+#define MAX_WORD_LEN 30
 #define MAX 10
 #define MUTEX 0
 #define WRITE 1
@@ -18,8 +18,8 @@ int main() {
     key_t shmKey, semKey;
     int shmID, semID;
     int *shmAddr;
-    int readIndex, value;
-    int i_readIndex = MAX;
+    int wordLength, value;
+    int indexPos = MAX;
 
     semArray A, B, empty;
     empty.n = 0;
@@ -29,7 +29,7 @@ int main() {
 
     //uzyskanie dosepu do pamieci dzielonej
     shmKey = get_ftok_key('G');
-    shmID = get_shm_id(shmKey, (MAX + 2) * sizeof(int), 0666);
+    shmID = get_shm_id(shmKey, (MAX + 1) * sizeof(int), 0666);
 
     //przylaczenie pamieci dzielonej
     shmAddr = shmat(shmID, NULL, 0);
@@ -42,36 +42,38 @@ int main() {
     A.semID = semID;
     B.semID = semID;
 
-    array(&A, 1);
+    array(&A, 1);  // PE(M;A)
     A.sems[0] = MUTEX;
     array(&B, 1);
     B.sems[0] = WRITE;
     PE(A, B);
 
-    array(&A, 2);
+    array(&A, 2);  // VE(M, R)
     A.sems[0] = MUTEX;
     A.sems[1] = READ;
     VE(A);
 
-    //pamiec krytyczna - POCZATEK
+
     array(&A, 1);
     A.sems[0] = MUTEX;
     PE(A, empty);
+    usleep(500000);
 
     //czytanie
-    readIndex = *(shmAddr + i_readIndex * sizeof(int));
-    value = *(shmAddr + readIndex * sizeof(int));
-    printf("R] -value[%d]: %d\n", readIndex, value);
+    wordLength = *(shmAddr + indexPos * sizeof(int));
 
-    //modyfikacja indeksu do odczytu
-    readIndex++;
-    if (readIndex == MAX)
-        readIndex = 0;
-    *(shmAddr + i_readIndex * sizeof(int)) = readIndex;
+    printf("R] -values[%d-%d]: ", 0, wordLength - 1);
+    for (int index = 0; index < wordLength; index++) {
+        value = *(shmAddr + index * sizeof(int));
+        printf("%c", value);
+    }
+    printf("\n");
 
     VE(A);
-    //pamiec krytyczna - KONIEC
 
+//    array(&A, 1);  // PE(R)
+//    A.sems[0] = READ;
+//    PE(A, empty);
 
     //odlaczanie pamieci dzielonej
     shmdt(shmAddr);

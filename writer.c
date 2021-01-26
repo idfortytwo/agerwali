@@ -18,8 +18,8 @@ int main() {
     key_t shmKey, semKey;
     int shmID, semID;
     int *shmAddr;
-	int writeIndex, value;
-    int i_writeIndex = MAX + 1;
+	int index, value;
+    int indexPos = MAX;
 
     semArray A, B, empty;
     empty.n = 0;
@@ -29,7 +29,7 @@ int main() {
 
     //uzyskanie dosepu do pamieci dzielonej
 	shmKey = get_ftok_key('G');
-    shmID = get_shm_id(shmKey, (MAX + 2) * sizeof(int), 0666);
+    shmID = get_shm_id(shmKey, (MAX + 1) * sizeof(int), 0666);
 
     //przylaczenie pamieci dzielonej
     shmAddr = shmat(shmID, NULL, 0);
@@ -44,36 +44,36 @@ int main() {
 
 
     //pamiec krytyczna - POCZATEK
-    array(&A, 1);
+    array(&A, 1);  // VE(A)
     A.sems[0] = WRITE;
     VE(A);
 
-    A.sems[0] = MUTEX;
+    array(&A, 1);  // VE(A)
+    A.sems[0] = MUTEX;  // PE(M;R)
     array(&B, 1);
     B.sems[0] = READ;
     PE(A, B);
 
-    sleep(1);
+    usleep(100000);
 
 
     //odczyt indeksu do wpisywania
-    writeIndex = *(shmAddr + i_writeIndex * sizeof(int));
+    index = *(shmAddr + indexPos * sizeof(int));
 
     //wpisywanie
-    value = getpid();
-    *(shmAddr + writeIndex * sizeof(int)) = value;
-    printf("W] +value[%d]: %d\n", writeIndex, value);
+    value = getpid() % (123 - 97) + 97;
+    *(shmAddr + index * sizeof(int)) = value;
+    printf("W] +value[%d]: %c\n", index, value);
 
     //modyfikacja indeksu do wpisywania
-    writeIndex++;
-    if (writeIndex == MAX)
-        writeIndex = 0;
-    *(shmAddr + i_writeIndex * sizeof(int)) = writeIndex;
+    index++;
+    if (index == MAX)
+        index = 0;
+    *(shmAddr + indexPos * sizeof(int)) = index;
 
     VE(A);
 
-    A.sems[0] = WRITE;
-    B.n = 0;
+    A.sems[0] = WRITE;  // PE(A)
     PE(A, empty);
     //pamiec krytyczna - KONIEC
 

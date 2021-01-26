@@ -13,19 +13,6 @@ int get_ftok_key(char key) {
     return ftok_key;
 }
 
-int get_msg_id(key_t msg_key, int msgflg) {
-    int msg_id;
-
-    msg_id = msgget(msg_key, msgflg); //tworzenie kk
-    if (msg_id == -1) {
-        printf("get_msg_id(%d) error (k. k.)\n", msg_key);
-        perror("err: ");
-        exit(1);
-    }
-
-    return msg_id;
-}
-
 int get_shm_id(key_t shm_key, size_t size, int shmflg) {
     int shm_id;
 
@@ -62,43 +49,17 @@ void init_sem(int semID, int number, int val) {
     }
 }
 
-int wait_sem(int semID, int number, int flags) {
-    struct sembuf operacje[1];
-    operacje[0].sem_num = number;
-    operacje[0].sem_op = -1;
-    operacje[0].sem_flg = 0 | flags; //SEM_UNDO;
-
-    if (semop(semID, operacje, 1) == -1) {
-        perror("Blad semop (waitSemafor)");
-        return -1;
-    }
-//    sleep(1);
-    return 1;
-}
-
-void signal_sem(int semID, int number) {
-    struct sembuf operacje[1];
-    operacje[0].sem_num = number;
-    operacje[0].sem_op = 1;
-
-    if (semop(semID, operacje, 1) == -1)
-        perror("Blad semop (postSemafor): ");
-}
-
-
 
 int PE(int semID, int* A, int lenA, int* B, int lenB) {
     struct sembuf operacje[2];
 
     int i = 0;
     for (; i < lenA; i++) {
-//        printf("PE A sem%d -1\n", i);
         operacje[i].sem_num = A[i];
         operacje[i].sem_op = -1;
         operacje[i].sem_flg = SEM_UNDO;
     }
     for (int j = 0; j < lenA; j++) {
-//        printf("PE B sem%d 0\n", j);
         operacje[i].sem_num = B[j];
         operacje[i].sem_op = 0;
         operacje[i].sem_flg = SEM_UNDO;
@@ -117,7 +78,6 @@ int VE(int semID, int* A, int lenA) {
     struct sembuf operacje[2];
 
     for (int i = 0; i < lenA; i++) {
-//        printf("VE A sem%d +1\n", i);
         operacje[i].sem_num = A[i];
         operacje[i].sem_op = 1;
         operacje[i].sem_flg = SEM_UNDO;

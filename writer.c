@@ -23,7 +23,7 @@ int main() {
 
     int A[1], B[1];
 
-    printf("W] writer start\n");
+//    printf("W] writer start\n");
 
 
     //uzyskanie dosepu do pamieci dzielonej
@@ -66,6 +66,6 @@ int main() {
     //odlaczanie pamieci dzielonej
     shmdt(shmAddr);
 
-    printf("W] writer end\n");
+//    printf("W] writer end\n");
     return 0;
 }

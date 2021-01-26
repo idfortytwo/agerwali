@@ -23,7 +23,7 @@ int main() {
 
     int A[2], B[1];
 
-    printf("R] reader start\n");
+//    printf("R] reader start\n");
 
 
     //uzyskanie dosepu do pamieci dzielonej
@@ -60,6 +60,6 @@ int main() {
     //odlaczanie pamieci dzielonej
     shmdt(shmAddr);
 
-    printf("R] reader koniec\n");
+//    printf("R] reader koniec\n");
     return 0;
 }
